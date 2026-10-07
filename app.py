@@ -10,7 +10,7 @@ from src.config import (
     FEATURES,
 )
 
-from src.predict import predict_status
+from src.predict import predict_status, predict_dataset
 from src.alerts import generate_alert
 from src.train_models import train_models, save_models, DEFAULT_MODEL_PARAMS
 
@@ -278,6 +278,81 @@ def show_prediction():
         )
 
 
+def show_dataset_upload():
+
+    st.header("Upload Dataset")
+    st.write(
+        "Upload a CSV containing one row per machine. The file must include "
+        "Temperature, Vibration, Pressure, RPM, Current, and OperatingHours."
+    )
+
+    uploaded_file = st.file_uploader(
+        "Choose a sensor dataset (CSV)",
+        type=["csv"],
+        help="An optional Machine_ID column is retained in the results.",
+    )
+
+    selected_model = st.selectbox(
+        "Model for dataset analysis",
+        [
+            "Random Forest",
+            "KNN",
+            "Logistic Regression",
+            "Decision Tree",
+        ],
+        key="dataset_model",
+    )
+
+    if uploaded_file is None:
+        return
+
+    if not st.button("Analyze Dataset", type="primary"):
+        return
+
+    try:
+        dataset = pd.read_csv(uploaded_file)
+    except (pd.errors.ParserError, UnicodeDecodeError) as error:
+        st.error(f"Could not read the uploaded CSV: {error}")
+        return
+
+    try:
+        predictions = predict_dataset(
+            load_model(selected_model),
+            dataset,
+        )
+    except ValueError as error:
+        st.error(f"Dataset validation failed: {error}")
+        return
+    except FileNotFoundError as error:
+        st.error(
+            f"The {selected_model} model is not available. Train the models "
+            f"first. Details: {error}"
+        )
+        return
+
+    st.subheader("Machine Health Results")
+
+    counts = predictions["Predicted_Status"].value_counts()
+    healthy, warning, critical = st.columns(3)
+    healthy.metric("Healthy", int(counts.get("Healthy", 0)))
+    warning.metric("Warning", int(counts.get("Warning", 0)))
+    critical.metric("Critical", int(counts.get("Critical", 0)))
+
+    predictions["Recommendation"] = predictions[
+        "Predicted_Status"
+    ].map(
+        lambda status: generate_alert(status)["message"]
+    )
+
+    st.dataframe(predictions, use_container_width=True)
+    st.download_button(
+        "Download Results CSV",
+        data=predictions.to_csv(index=False).encode("utf-8"),
+        file_name="machine_health_predictions.csv",
+        mime="text/csv",
+    )
+
+
 def show_model_performance():
 
     st.header("Model Performance")
@@ -324,6 +399,7 @@ def main():
         "Overview",
         "Machine Monitor",
         "Prediction",
+        "Upload Dataset",
         "Model Performance",
     ])
 
@@ -337,6 +413,9 @@ def main():
         show_prediction()
 
     with tabs[3]:
+        show_dataset_upload()
+
+    with tabs[4]:
         show_model_performance()
 
 

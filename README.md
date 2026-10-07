@@ -4,9 +4,23 @@ A small Streamlit dashboard for exploring machine health records, predicting
 machine status from sensor readings, and tuning the hyperparameters of four
 classification models.
 
+## Dashboard screenshots
+
+**Overview and model tuning controls**
+
 ![Dashboard overview and model tuning controls](screenshots/dashboard.png)
 
+**Sensor-based prediction form**
+
 ![Sensor-based prediction form](screenshots/prediction.png)
+
+**Upload a dataset**
+
+![CSV dataset upload control](screenshots/dataset-upload.png)
+
+**Batch machine health analysis**
+
+![Predicted statuses, confidence scores, and maintenance recommendations](screenshots/dataset-analysis.png)
 
 ## Features
 
@@ -14,6 +28,8 @@ classification models.
 - Machine-by-machine sensor readings
 - Prediction from Temperature, Vibration, Pressure, RPM, Current, and
   OperatingHours
+- CSV upload for batch machine-health predictions, confidence scores, and
+  downloadable recommendations
 - Random Forest, K-Nearest Neighbors, Logistic Regression, and Decision Tree
   classifiers
 - Sidebar controls for selected model hyperparameters and a button to retrain
@@ -52,6 +68,13 @@ streamlit run app.py
 Streamlit prints the local dashboard URL in the terminal. Use the sidebar
 sliders and **Retrain Models** to update the saved models. The Prediction tab
 lets you choose one of the saved models and enter sensor readings.
+
+To analyze a batch, open **Upload Dataset**, choose a CSV with the six required
+sensor columns, select a trained model, and click **Analyze Dataset**. An
+optional `Machine_ID` column is kept in the output. The results include a
+predicted status, confidence where supported by the model, a maintenance
+recommendation, and a downloadable CSV. Missing sensor fields, blank cells,
+and non-numeric sensor values are reported rather than imputed.
 
 ## Data
 
