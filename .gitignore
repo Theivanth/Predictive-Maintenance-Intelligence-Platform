@@ -1,0 +1,9 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Generated during training and retraining.
+/data/processed/*
+/models/*.joblib
+/outputs/*
